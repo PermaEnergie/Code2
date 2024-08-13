@@ -1,0 +1,126 @@
+import React, { useState, useEffect } from 'react';
+
+function FullyEditableImpactCalculator() {
+  const [inputs, setInputs] = useState({
+    newFarmsPerYear: '5',
+    carbonPrice: '40',
+    bambooProductivity: '50',
+    bambooPrice: '150',
+    years: '10',
+    commissionPercentage: '15'
+  });
+
+  const [results, setResults] = useState({
+    gdpImprovement: 0,
+    jobsCreated: 0,
+    totalCultivatedArea: 0,
+    percentageIrrigatedArea: 0,
+    permaEnergieRevenue: 0,
+    permaEnergieCumulativeTreasury: 0,
+    permaEnergieTurnover: 0,
+    carbonSequestered: 0,
+    deforestationReductionPercentage: 0,
+    frenchReductionTargetPercentage: 0
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    if (name === 'commissionPercentage') {
+      const numValue = parseFloat(value);
+      if (!isNaN(numValue) && numValue >= 2 && numValue <= 20) {
+        setInputs(prev => ({ ...prev, [name]: value }));
+      } else if (value === '' || value === '.' || value === '2.') {
+        setInputs(prev => ({ ...prev, [name]: value }));
+      }
+    } else {
+      setInputs(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  useEffect(() => {
+    calculateImpact();
+  }, [inputs]);
+
+  const calculateImpact = () => {
+    const newFarmsPerYear = parseFloat(inputs.newFarmsPerYear) || 0;
+    const carbonPrice = parseFloat(inputs.carbonPrice) || 0;
+    const bambooProductivity = parseFloat(inputs.bambooProductivity) || 0;
+    const bambooPrice = parseFloat(inputs.bambooPrice) || 0;
+    const years = parseFloat(inputs.years) || 0;
+    const commissionPercentage = parseFloat(inputs.commissionPercentage) || 15;
+
+    const baselineRevenue = 70 * 1400;
+    const cumulativeFarms = newFarmsPerYear * years;
+    
+    const totalCultivatedArea = cumulativeFarms * 70;
+    const totalRevenue = (totalCultivatedArea * bambooProductivity * bambooPrice) +
+                         (cumulativeFarms * 70 * bambooProductivity * 1.74 * carbonPrice);
+    const gdpImprovement = totalRevenue - (cumulativeFarms * baselineRevenue);
+    const jobsCreated = cumulativeFarms * 8;
+    const permaEnergieRevenue = totalRevenue * (commissionPercentage / 100);
+    const permaEnergieCumulativeTreasury = permaEnergieRevenue * years;
+    const permaEnergieTurnover = totalRevenue;
+    
+    const carbonSequestered = totalCultivatedArea * bambooProductivity * 1.74;
+    const deforestationReductionPercentage = (totalCultivatedArea * 5 / 4000000) * 100;
+    const frenchReductionTargetPercentage = (carbonSequestered / 350000000) * 100;
+
+    setResults({
+      gdpImprovement,
+      jobsCreated,
+      totalCultivatedArea,
+      percentageIrrigatedArea: (totalCultivatedArea / 9000000) * 100,
+      permaEnergieRevenue,
+      permaEnergieCumulativeTreasury,
+      permaEnergieTurnover,
+      carbonSequestered,
+      deforestationReductionPercentage,
+      frenchReductionTargetPercentage
+    });
+  };
+
+  return (
+    <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '800px', margin: 'auto', padding: '20px' }}>
+      <h1 style={{ textAlign: 'center' }}>Perma Energie Impact Calculator</h1>
+      
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '30px' }}>
+        {Object.entries(inputs).map(([key, value]) => (
+          <div key={key} style={{ border: '1px solid #ccc', padding: '10px', borderRadius: '5px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+              {key === 'commissionPercentage' ? 'Perma Energie Commission (%)' : key}
+            </label>
+            <input
+              type="text"
+              name={key}
+              value={value}
+              onChange={handleInputChange}
+              style={{ width: '100%', padding: '5px', boxSizing: 'border-box' }}
+            />
+            {key === 'commissionPercentage' && (
+              <small style={{ color: 'gray' }}>Value must be between 2% and 20%</small>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div style={{ backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '5px' }}>
+        <h2>Results after {inputs.years} years</h2>
+        <p><strong>Annual GDP generated in the last year:</strong> €{results.gdpImprovement.toLocaleString('en-US')}</p>
+        <p><strong>Jobs created:</strong> {results.jobsCreated.toLocaleString('en-US')}</p>
+        <p><strong>Total cultivated area:</strong> {results.totalCultivatedArea.toLocaleString('en-US')} hectares</p>
+        <p><strong>Percentage of irrigated area in Europe:</strong> {results.percentageIrrigatedArea.toFixed(2)}%</p>
+        <p><strong>Perma Energie revenue in the last year:</strong> €{results.permaEnergieRevenue.toLocaleString('en-US')}</p>
+        <p><strong>Perma Energie cumulative treasury:</strong> €{results.permaEnergieCumulativeTreasury.toLocaleString('en-US')}</p>
+        <p><strong>Perma Energie turnover in the last year:</strong> €{results.permaEnergieTurnover.toLocaleString('en-US')}</p>
+        <p><strong>Carbon sequestered in the last year:</strong> {results.carbonSequestered.toLocaleString('en-US')} tonnes</p>
+        
+        <br />
+        <h3>Impact Metrics</h3>
+        <p><strong>Percentage of worldwide deforestation reduction:</strong> {results.deforestationReductionPercentage.toFixed(2)}%</p>
+        <p><strong>Percentage of French carbon emissions reduction target:</strong> {results.frenchReductionTargetPercentage.toFixed(2)}%</p>
+      </div>
+    </div>
+  );
+}
+
+export default FullyEditableImpactCalculator;
